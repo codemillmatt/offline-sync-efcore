@@ -52,7 +52,7 @@
         },
         "branch": {
             "type": "string",
-            "defaultValue": "master",
+            "defaultValue": "azure-deploy",
             "metadata": {
                 "description": "Branch to build the website from"
             }
