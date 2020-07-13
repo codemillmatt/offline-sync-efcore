@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:FitApp.Core"
+    xmlns:yummy="clr-namespace:Xamarin.Forms.PancakeView;assembly=Xamarin.Forms.PancakeView"
+    mc:Ignorable="d"
+    x:Class="FitApp.Core.LoginPage"
+    Shell.PresentationMode="ModalAnimated"
+    Title="Login">
+
+    <d:ContentPage.BindingContext>
+        <viewModels:LoginPageViewModel/>
+    </d:ContentPage.BindingContext>
+
+    <ContentPage.Content>
+
+        <yummy:PancakeView BackgroundGradientAngle="20" BackgroundGradientStartColor="{StaticResource LightGradient}"
+                           BackgroundGradientEndColor="{StaticResource DarkGradient}">
+            <StackLayout Margin="20" VerticalOptions="Center">
+                <Label Text="Enter your username:" TextColor="{StaticResource DarkAccent}"
+                       FontSize="24" FontFamily="segoeui"/>
+                <Entry Text="{Binding UserName}"/>
+                <Button Text="Save" Command="{Binding SaveUserNameCommand}" FontFamily="segoeui" FontSize="Title"
+                        BackgroundColor="{StaticResource DarkAccent}" TextColor="White" CornerRadius="15"/>
+            </StackLayout>
+        </yummy:PancakeView>
+    </ContentPage.Content>
+</ContentPage>
