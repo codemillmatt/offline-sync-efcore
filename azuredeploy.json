@@ -1,0 +1,219 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {    
+        "sqlServerNameParameter": {
+            "type": "string",
+            "defaultValue": "fitappsqlserver",
+            "metadata": {
+                "description": "Name of the SQL server"
+            }
+        },
+        "webServicePlanNameParameter": {
+            "type": "string",
+            "defaultValue": "fitAppWebPlan",
+            "metadata": {
+                "description": "Name of the app service plan"
+            }
+        },
+        "appServiceNameParameter": {
+            "type": "string",
+            "defaultValue": "fitappweb",
+            "metadata": {
+                "description": "Name of the web app - need to be globally unique"
+            }
+        },
+        "sqlAdminName": {
+            "type": "string",
+            "defaultValue": "cttrackingadmin",
+            "metadata": {
+                "description": "User id of sql admin"
+            }
+        },
+        "sqlAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "SQL Admin password"
+            }
+        },
+        "prefix": {
+            "type": "string",
+            "defaultValue": "fit",            
+            "metadata": {
+                "description": "Used to make sure all names are globally unique"
+            }
+        },
+        "repoUrl": {
+            "type": "string",
+            "defaultValue": "https://github.com/codemillmatt/offline-sync-efcore",
+            "metadata": {
+                "description": "Repository where the web code is stored"
+            }
+        },
+        "branch": {
+            "type": "string",
+            "defaultValue": "master",
+            "metadata": {
+                "description": "Branch to build the website from"
+            }
+        },
+        "sqlUserName": {
+            "type": "string",
+            "defaultValue": "DotNetWebApp",
+            "metadata": {
+                "description": "Username the web app will connect to Azure SQL as"
+            }
+        },
+        "sqlUserPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the Web App SQL user"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "sqlServerName": "[concat(parameters('prefix'), parameters('sqlServerNameParameter'))]",
+        "sqlDatabaseName": "ct_sample",
+        "appServicePlanName": "[concat(parameters('prefix'), parameters('webServicePlanNameParameter'))]",
+        "appServiceName": "[concat(parameters('prefix'), parameters('appServiceNameParameter'))]",
+        "sqlDatabaseEdition": "Basic",
+        "sqlDatabaseCollation": "SQL_Latin1_General_CP1_CI_AS",
+        "sqlDatabaseObjectiveName": "Basic" 
+    },
+    "resources": [            
+        {
+            "name": "[variables('sqlServerName')]",
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2014-04-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "[variables('sqlServerName')]"
+            },
+            "properties": {
+                "administratorLogin": "[parameters('sqlAdminName')]",
+                "administratorLoginPassword": "[parameters('sqlAdminPassword')]"
+            },
+            "resources": [
+                {
+                    "type": "databases",
+                    "name": "[variables('sqlDatabaseName')]",
+                    "apiVersion": "2019-06-01-preview",
+                    "location": "[resourceGroup().location]",
+                    "tags": {
+                        "displayName": "Database"
+                    },
+                    "properties": {
+                        "edition": "[variables('sqlDatabaseEdition')]",
+                        "collation": "[variables('sqlDatabaseCollation')]",
+                        "requestedServiceObjectiveName": "[variables('sqlDatabaseObjectiveName')]"
+                    },
+                    "dependsOn": [
+                        "[variables('sqlServerName')]"
+                    ]                
+                },                           
+                {
+                    "type": "firewallRules",
+                    "apiVersion": "2014-04-01",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+                    ],
+                    "location": "[resourceGroup().location]",
+                    "name": "AllowAllWindowsAzureIps",
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "0.0.0.0"
+                    }
+                }
+            ]
+        },
+        {  
+            "type":"Microsoft.Web/serverfarms",
+            "apiVersion":"2016-09-01",
+            "name":"[variables('appServicePlanName')]",
+            "location":"[resourceGroup().location]",
+            "properties":{  
+                "name":"[variables('appServicePlanName')]",
+                "computeMode":"Dynamic"
+            },
+            "sku":{  
+                "name": "B1",
+                "tier": "Basic",
+                "size": "B1",
+                "family": "B",
+                "capacity": 1
+            }
+        },
+        {
+            "name": "[variables('appServiceName')]",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "location": "[resourceGroup().location]",            
+            "tags": {
+                "[concat('hidden-related:', resourceGroup().id, concat('/providers/Microsoft.Web/serverfarms/', variables('appServicePlanName')))]": "Resource",
+                "displayName": "[variables('appServiceName')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms',variables('appServicePlanName'))]",
+                "[variables('sqlServerName')]"
+            ],
+            "properties": {
+                "name": "[variables('appServiceName')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "PROJECT",
+                            "value": "src/Web"
+                        }
+                    ],
+                    "connectionStrings": [
+                        {
+                            "name":"DefaultConnection",
+                            "connectionString":"[concat('Server=tcp:',reference(variables('sqlServerName')).fullyQualifiedDomainName,',1433;Initial Catalog=', variables('sqlDatabaseName'),';Persist Security Info=False;User ID=', parameters('sqlUserName'),';Password=', parameters('sqlUserPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+                            "type": "SQLAzure"
+                        }
+                    ]                    
+                },
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(variables('appServiceName'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(variables('appServiceName'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "reserved": false,
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 1536,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false
+            },
+            "resources": [
+                {
+                    "apiVersion": "2018-11-01",
+                    "name": "web",
+                    "type": "sourcecontrols",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Web/sites', variables('appServiceName'))]"
+                    ],
+                    "properties": {
+                        "RepoUrl": "[parameters('repoUrl')]",
+                        "branch": "[parameters('branch')]",
+                        "IsManualIntegration": true
+                    }
+                }
+            ]
+        }                
+    ],
+    "outputs": {                    
+    }
+}
