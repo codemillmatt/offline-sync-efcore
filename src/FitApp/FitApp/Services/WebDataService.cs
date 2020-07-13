@@ -59,7 +59,8 @@ namespace FitApp.Core
                 Preferences.Set(Constants.DataSyncPointPreference, (int)syncResult.Metadata.Sync.Version);
 
                 // save training sessions locally
-                var localData = new LocalDataService();
+                var localData = DependencyService.Get<ILocalDataService>();
+
                 var isFull = syncResult.Metadata.Sync.Type.Equals("full", StringComparison.OrdinalIgnoreCase);
                 localData.SaveSessionFromWeb(syncResult.TrainingData, isFull, (int)syncResult.Metadata.Sync.Version);
             }
