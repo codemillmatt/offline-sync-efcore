@@ -1,11 +1,13 @@
 ﻿using System;
 using Newtonsoft.Json;
 
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace FitApp.Core
 {
     public class TrainingSession
     {
-        [JsonProperty("$operation")]
+        [JsonProperty("$operation"), NotMapped]
         public string DataOperation { get; set; }
 
         [JsonProperty("Id")]
@@ -32,8 +34,10 @@ namespace FitApp.Core
         [JsonProperty("Calories")]
         public long Calories { get; set; }
 
+        [NotMapped]
         public int LastUpdateVersion { get; set; }
 
+        [NotMapped]
         public string RecordedOnDisplay { get; set; }
     }
 }

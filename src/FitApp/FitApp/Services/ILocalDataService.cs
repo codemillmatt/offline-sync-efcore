@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FitApp.Core
 {
     public interface ILocalDataService
     {
-        public void SaveSessionFromWeb(List<TrainingSession> sessions, bool fullReload, int currentVersion);
-        public List<TrainingSession> GetLocalSessions();
-        public void DeleteAllLocalSessions();
+        public Task SaveSessionsFromWeb(DataSyncInfo dataSync, List<TrainingSession> trainingSessions);
+        public Task<List<TrainingSession>> GetLocalSessions();
+        public Task<long> GetLatestSyncVersion();
     }
 }

@@ -4,7 +4,6 @@ using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using Xamarin.Essentials;
 using FitApp.Core;
-using MonkeyCache.SQLite;
 
 [assembly: ExportFont("segoeui.ttf")]
 [assembly: ExportFont("segoeuib.ttf", Alias ="segoebold")]
@@ -21,7 +20,7 @@ namespace FitApp
             InitializeComponent();
             
             DependencyService.Register<IWebDataService, WebDataService>();
-            DependencyService.Register<ILocalDataService, LocalDataService>();
+            DependencyService.Register<ILocalDataService, EFCoreDataService>();
           
             if (string.IsNullOrEmpty(Preferences.Get(Constants.UserIdPreference, string.Empty)))
             {
@@ -31,8 +30,7 @@ namespace FitApp
             {
                 MainPage = new NavigationPage(new WorkoutHistoryPage());                
             }
-
-            Barrel.ApplicationId = "fitapp";
+            
         }
 
         protected override void OnStart()
