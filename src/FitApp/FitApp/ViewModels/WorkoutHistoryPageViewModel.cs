@@ -45,7 +45,7 @@ namespace FitApp.Core
             await cloudSvc.GetTrainingSessions();
 
             // get the local sessions            
-            var localSessions = localSvc.GetLocalSessions();
+            var localSessions = await localSvc.GetLocalSessions();
 
             TrainingSessions.Clear();
 
@@ -62,8 +62,7 @@ namespace FitApp.Core
         void ExecuteSignoutCommand()
         {
             Preferences.Remove(Constants.UserIdPreference);
-            Preferences.Remove(Constants.DataSyncPointPreference);
-
+            
             App.Current.MainPage = new NavigationPage(new LoginPage());
         }
 

@@ -41,6 +41,8 @@ begin tran
                     ts.[Type], 
                     ts.Steps, 
                     ts.Distance,
+                    ts.Duration,
+                    ts.Calories,
                     ts.PostProcessedOn,
                     ts.AdjustedSteps,
                     ts.AdjustedDistance,

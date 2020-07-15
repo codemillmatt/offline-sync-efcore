@@ -11,13 +11,15 @@ namespace FitApp.Core
         protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
         {
             // latest saved sync point
-            int currentVersion = Xamarin.Essentials.Preferences.Get(Constants.DataSyncPointPreference, 0);
+            //int currentVersion = 0; // Xamarin.Essentials.Preferences.Get(Constants.DataSyncPointPreference, 0);
 
-            // sync point the session was from
-            int trainingSessionVersion = ((TrainingSession)item).LastUpdateVersion;
+            //// sync point the session was from
+            //int trainingSessionVersion = ((TrainingSession)item).LastUpdateVersion;
 
-            // if the sync points are the same - the session is new
-            return trainingSessionVersion == currentVersion ? NewSessionTemplate : ExistingSessionTemplate;
+            //// if the sync points are the same - the session is new
+            //return trainingSessionVersion == currentVersion ? NewSessionTemplate : ExistingSessionTemplate;
+
+            return NewSessionTemplate;
         }
     }
 }

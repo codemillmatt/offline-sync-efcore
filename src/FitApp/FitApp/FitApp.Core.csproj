@@ -18,6 +18,7 @@
     <PackageReference Include="Sharpnado.MaterialFrame" Version="1.1.0" />
     <PackageReference Include="Xamarin.Forms.Maps" Version="4.6.0.847" />
     <PackageReference Include="Xamarin.Forms.PancakeView" Version="1.4.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.5" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Pages\" />

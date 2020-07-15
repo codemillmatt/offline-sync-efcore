@@ -18,9 +18,16 @@ namespace FitApp.Core
 
         static HttpClient client;
 
+        ILocalDataService dataService;
+        string userName;
+
         public WebDataService()
         {
             client = new HttpClient();
+
+            dataService = DependencyService.Get<ILocalDataService>();
+
+            userName = Preferences.Get(Constants.UserIdPreference, "Matt");
         }
 
         public async Task GetTrainingSessions()
@@ -35,11 +42,8 @@ namespace FitApp.Core
 
             try
             {
-                // first pull out the latest saved sync point with 0 being the start
-                var syncPoint = Preferences.Get(Constants.DataSyncPointPreference, 0);
-
-                // get the user name - "Matt" will be seed data if nothing else
-                var userName = Preferences.Get(Constants.UserIdPreference, "Matt");
+                // Get the latest version sync'd
+                var syncPoint = (int) await dataService.GetLatestSyncVersion();
 
                 // create the sync request
                 var syncRequest = new SyncRequest { FromVersion = syncPoint, UserId = userName };
@@ -55,14 +59,7 @@ namespace FitApp.Core
                 var syncResultJson = await response.Content.ReadAsStringAsync();
                 var syncResult = JsonConvert.DeserializeObject<DataSyncResult>(syncResultJson);
 
-                // save the sync point
-                Preferences.Set(Constants.DataSyncPointPreference, (int)syncResult.Metadata.Sync.Version);
-
-                // save training sessions locally
-                var localData = DependencyService.Get<ILocalDataService>();
-
-                var isFull = syncResult.Metadata.Sync.Type.Equals("full", StringComparison.OrdinalIgnoreCase);
-                localData.SaveSessionFromWeb(syncResult.TrainingData, isFull, (int)syncResult.Metadata.Sync.Version);
+                await dataService.SaveSessionsFromWeb(syncResult.Metadata.Sync, syncResult.TrainingData);
             }
             catch (Exception ex)
             {
@@ -78,10 +75,7 @@ namespace FitApp.Core
             var saveRequestUrl = $"{Constants.WebServerBaseUrl}{saveRequestBase}";
 
             try
-            {                
-                // get the user name - "Matt" will be seed data if nothing else
-                var userName = Preferences.Get(Constants.UserIdPreference, "Matt");
-                
+            {                                                
                 // perform the request
                 var request = new HttpRequestMessage(HttpMethod.Post, saveRequestUrl);
                                 
